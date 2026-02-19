@@ -13,16 +13,12 @@ c:\Users\Alitman\.vscode\Projects\full-stack-monitoring\
 │   ├── ARCHITECTURE.md             ✅ System design & architecture
 │   └── PROJECT_STRUCTURE.md        ✅ File tree & index
 │
-├── 📊 Prometheus Configuration (3 files)
+├── 📊 Prometheus Configuration (2 files)
 │   ├── prometheus/prometheus.yml        ✅ 20+ exporter configs
-│   ├── prometheus/alerts.yml            ✅ 20+ alert rules
 │   └── prometheus/recording_rules.yml   ✅ Metric aggregation
 │
-├── 💾 AlertManager Configuration
-│   └── alertmanager.yml             ✅ Multi-receiver setup
-│
 ├── 🐳 Docker Orchestration
-│   └── docker-compose.yml           ✅ Full stack (12+ services)
+│   └── docker-compose.yml           ✅ Full stack (11+ services)
 │
 ├── 🎨 Grafana Configuration (3 files)
 │   ├── grafana/dashboards/
@@ -85,8 +81,7 @@ c:\Users\Alitman\.vscode\Projects\full-stack-monitoring\
 
 ### Configuration Types
 ✅ **Prometheus**: Complete with service discovery, relabeling  
-✅ **AlertManager**: Multi-receiver routing (Email, Slack, PagerDuty)  
-✅ **Alerting**: 20+ pre-built alert rules  
+✅ **Grafana Alerting**: Native alert rules with email/webhook notifications  
 ✅ **Recording Rules**: Pre-aggregated metrics for performance  
 ✅ **Docker Compose**: Development and testing stack  
 
@@ -152,15 +147,21 @@ Each guide includes:
 ### HIGH_AVAILABILITY.md
 - Multi-Prometheus architecture
 - Load balancer configuration (Nginx)
-- AlertManager clustering
 - Remote storage setup
 - Failover testing procedures
 - Backup strategies
 
+### GRAFANA_ALERTING.md
+- Native Grafana alert rules setup
+- Contact points configuration (Email, Webhook, Slack)
+- Alert routing and grouping
+- Example alert rules for all metrics
+- Alert silencing and maintenance windows
+- Integration with dashboards
+
 ### TROUBLESHOOTING.md
 - Prometheus issues
 - Grafana datasource problems
-- AlertManager configuration
 - Exporter-specific issues
 - Docker container issues
 - Network debugging
@@ -196,7 +197,7 @@ Each guide includes:
 ### Operational Skills
 1. **Prometheus operations**: Scrape configuration, service discovery
 2. **Grafana dashboard design**: Multi-level hierarchies
-3. **AlertManager routing**: Complex rule evaluation
+3. **Grafana alerting**: Native rules, contact points, routing
 4. **Docker orchestration**: Container health, volumes, networking
 5. **Troubleshooting**: Systematic debugging methodology
 6. **Documentation**: Clear, comprehensive guides

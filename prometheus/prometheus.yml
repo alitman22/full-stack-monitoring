@@ -4,13 +4,7 @@ global:
   external_labels:
     monitor: 'full-stack-monitoring'
 
-alerting:
-  alertmanagers:
-    - static_configs:
-        - targets: ['localhost:9093']
-
 rule_files:
-  - 'alerts.yml'
   - 'recording_rules.yml'
 
 scrape_configs:

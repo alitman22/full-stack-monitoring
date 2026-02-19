@@ -32,10 +32,9 @@ docker-compose ps
 
 Expected output:
 ```
-CONTAINER ID   IMAGE                                PORTS                    STATUS
+PROMETHEUS   CONTAINER ID   IMAGE                                PORTS                    STATUS
 ...            prom/prometheus:latest               9090/tcp                 Up 2 minutes
 ...            grafana/grafana:latest               3000/tcp                 Up 2 minutes
-...            prom/alertmanager:latest             9093/tcp                 Up 2 minutes
 ...            prom/node-exporter:latest            9100/tcp                 Up 2 minutes
 ...            prom/blackbox-exporter:latest        9115/tcp                 Up 2 minutes
 ...            postgres:15-alpine                   5432/tcp                 Up 2 minutes
@@ -49,7 +48,6 @@ CONTAINER ID   IMAGE                                PORTS                    STA
 ```
 Prometheus: http://localhost:9090
 Grafana: http://localhost:3000 (admin/admin)
-AlertManager: http://localhost:9093
 ```
 
 ## Configuration
@@ -71,30 +69,21 @@ After editing, reload configuration:
 docker-compose exec prometheus kill -HUP 1
 ```
 
-### Update AlertManager Configuration
+### Configure Grafana Alerting
 
-Edit `alertmanager.yml` to configure alerts:
+Grafana uses native alert rules for triggering notifications.
 
-```yaml
-route:
-  receiver: 'email'
-  group_by: ['alertname', 'cluster', 'service']
+**Setup**:
+1. Navigate to **Alerting** → **Alert rules**
+2. Click **+ New alert rule**
+3. Configure:
+   - Query: Your metric (e.g., CPU > 80%)
+   - Condition: Threshold value
+   - Contact point: Email, Webhook, Slack, Teams, PagerDuty
+   - Name: Descriptive alert name
+4. Save alert rule
 
-receivers:
-  - name: 'email'
-    email_configs:
-      - to: 'alerts@example.com'
-        from: 'alertmanager@example.com'
-        smarthost: 'smtp.example.com:587'
-        auth_username: 'user@example.com'
-        auth_password: 'password'
-```
-
-Restart AlertManager:
-
-```bash
-docker-compose restart alertmanager
-```
+For detailed alerting setup, see [GRAFANA_ALERTING.md](../docs/GRAFANA_ALERTING.md)
 
 ## Adding Remote Targets
 
@@ -171,12 +160,6 @@ docker-compose logs -f prometheus
 
 ```bash
 docker-compose logs -f grafana
-```
-
-### View AlertManager Logs
-
-```bash
-docker-compose logs -f alertmanager
 ```
 
 ### Check Exporter Status

@@ -268,7 +268,54 @@ Add variables for dynamic filtering:
 
 ---
 
+## � Setting Up Alerts
+
+This project uses **Grafana's native alerting system** for alert management and notifications.
+
+### Quick Alert Setup
+
+1. Navigate to **Alerting** → **Alert rules**
+2. Click **+ New alert rule**
+3. Configure:
+   - Query: Define condition (e.g., CPU > 80%)
+   - Condition: Set threshold
+   - Contact point: Choose notification channel
+   - Name: Descriptive alert name
+4. Save alert rule
+
+### Contact Points (Notifications)
+
+Configure notification channels in **Alerting** → **Contact points**:
+
+- **Email**: SMTP-based email notifications
+- **Webhook**: JSON POST to custom endpoint
+- **Slack**: Direct Slack channel integration
+- **Teams**: Microsoft Teams webhooks
+- **PagerDuty**: On-call incident routing
+
+### Example Alert Rules
+
+**CPU Alert**:
+- Condition: CPU > 80%
+- For: 5 minutes
+- Notification: Email
+
+**SSL Certificate Expiry**:
+- Condition: Days remaining < 7
+- For: Immediately
+- Notification: Critical alerts Slack
+
+**Service Unavailable**:
+- Condition: probe_success < 1
+- For: 2 minutes
+- Notification: High priority email
+
+**[📖 Complete Alerting Guide](GRAFANA_ALERTING.md)** - Detailed setup, examples, and best practices.
+
+---
+
 ## 📚 Related Documentation
+- [GRAFANA_ALERTING.md](GRAFANA_ALERTING.md) - Complete alerting setup guide
 - [MONITORING_MATRIX.md](../docs/MONITORING_MATRIX.md) - Detailed exporter coverage
 - [metric_queries.md](../examples/metric_queries.md) - 50+ PromQL examples
 - [TROUBLESHOOTING.md](../docs/TROUBLESHOOTING.md) - Common issues and solutions

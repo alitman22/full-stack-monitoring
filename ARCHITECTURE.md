@@ -17,14 +17,9 @@ Comprehensive reference architecture for enterprise-grade monitoring infrastruct
 2. **Grafana** (3000)
    - Metrics visualization and dashboarding
    - Multi-datasource support
-   - Alert integration
+   - Native alert rules and routing
+   - Multi-channel notifications (Email, Webhook, Slack, Teams, etc.)
    - User authentication and RBAC
-
-3. **AlertManager** (9093)
-   - Alert routing and deduplication
-   - Clustering support via gossip protocol
-   - Multi-receiver integration (Email, Slack, PagerDuty, etc.)
-   - Silencing and inhibition
 
 ## Data Flow
 
@@ -59,17 +54,16 @@ Comprehensive reference architecture for enterprise-grade monitoring infrastruct
              │                    │                    │
              ▼                    ▼                    ▼
       ┌────────────┐       ┌─────────────┐      ┌──────────┐
-      │  Grafana   │       │ AlertManager│      │ Remote   │
-      │  (3000)    │       │  (9093)     │      │ Storage  │
+      │  Grafana   │       │Remote       │      │ Remote   │
+      │  (3000)    │       │Storage      │      │ Storage  │
       └────────────┘       └─────────────┘      └──────────┘
-             │                    │
-      ┌──────┴──────┐       ┌──────┴──────┐
-      │  Dashboards │       │ Notification │
-      │  Analytics  │       │   Channels   │
-      │  Alerts     │       │   (Email,    │
-      │             │       │    Slack,    │
-      │             │       │  PagerDuty)  │
-      └─────────────┘       └──────────────┘
+             │
+      ┌──────┴────────────────────────┐
+      │   Dashboards, Alerts &         │
+      │   Notifications (Email,        │
+      │   Webhook, Slack, Teams,       │
+      │   PagerDuty)                   │
+      └────────────────────────────────┘
 ```
 
 ## Monitoring Layers
@@ -225,24 +219,25 @@ Prometheus (Local) → Prometheus (Remote)
    Fired/Resolved states tracked
 
 3. Alert Deduplication
-   AlertManager groups similar alerts
+   Grafana groups similar alerts
    group_by: [alertname, instance]
    group_wait: 10s (batch collection)
 
 4. Route Matching
-   Route hierarchy applied
+   Grafana routing rules applied
    Critical → Immediate dispatch
    Warning → Batch in 30s
    Info → Daily digest
 
 5. Notification
-   Severity->Receiver mapping
-   Email, Slack, PagerDuty, etc.
+   Severity->Contact point mapping
+   Email, Slack, Teams, PagerDuty, Webhook, etc.
    Escalation policies applied
 
 6. Silencing/Inhibition
-   Optional suppression rules
+   Built-in silencing feature
    Prevents alert storms
+   Maintenance window support
 ```
 
 ## Metric Retention Policies
@@ -271,12 +266,13 @@ Remote Storage (Long-term)
 **Add Prometheus Instances**:
 - Use metric relabeling to shard targets
 - Load balance via Nginx/HAProxy
-- Duplicate AlertManager for redundancy
+- Separate scrapers for different target groups
 
 **Add Grafana Instances**:
 - Use external database (MySQL/PostgreSQL)
 - Multiple Grafana servers behind load balancer
 - Session store in database
+- Centralized alerting configuration
 
 ### Vertical Scaling
 
@@ -299,8 +295,7 @@ LoadBalancer/Nginx (TLS termination)
     ↓
 Internal Network
     ├─ Prometheus (no auth)
-    ├─ Grafana (HTTP Auth + LDAP/OIDC)
-    └─ AlertManager (basic auth)
+    └─ Grafana (HTTP Auth + LDAP/OIDC)
 ```
 
 ### Data Security
@@ -335,9 +330,9 @@ Internal Network
 ```
 Daily Backups
 ├─ Prometheus data (tar.gz)
-├─ Grafana datasources & dashboards
-├─ AlertManager configuration
-└─ Exporter configurations
+├─ Grafana datasources, dashboards & alerts
+├─ Exporter configurations
+└─ Docker volumes
     ↓
     Stored in S3/Off-site
 ```
@@ -364,22 +359,18 @@ Daily Backups
 
 ### Monitoring the Monitors
 ```
-AlertManager Health
-├─ Cluster peer status
+Grafana Health
+├─ Alert rule evaluation
 ├─ Notification delivery
-└─ Message queue depth
+├─ Dashboard render time
+├─ Datasource connectivity
+└─ User sessions
 
 Prometheus Health
 ├─ Scrape success rate
 ├─ Ingestion rate
 ├─ Storage utilization
 └─ Query latency
-
-Grafana Health
-├─ Dashboard render time
-├─ Datasource connectivity
-├─ Alert state sync
-└─ User sessions
 ```
 
 ## Best Practices Summary

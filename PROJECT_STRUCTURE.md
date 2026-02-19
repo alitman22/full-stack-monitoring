@@ -58,16 +58,10 @@ full-stack-monitoring/
 │   └── health_check.sh                  # Health check script
 │
 ├── docker-compose.yml                   # Full stack (dev/test)
-│   └── Services: Prometheus, Grafana, AlertManager, 10+ exporters
+│   └── Services: Prometheus, Grafana, 10+ exporters
 │         Databases: PostgreSQL, MongoDB (included for demo)
 │         Message Queues: RabbitMQ (included for demo)
-│
-├── docker-compose.prod.yml              # Production HA setup (planned)
-│
-├── alertmanager.yml                     # AlertManager routing config
-│   └── Multi-receiver support: Email, Slack, PagerDuty
-│         Hierarchical routing
-│         Clustering configuration
+│         Alerting: Grafana native alerts (no AlertManager)
 │
 ├── .env.example                         # Environment variables template
 ├── .gitignore                           # Git ignore rules

@@ -116,8 +116,6 @@ This project demonstrates a **multi-layer, enterprise-grade monitoring solution*
 │   │       └── dashboards.yml            # Dashboard provisioning config
 │   └── docs/GRAFANA_DASHBOARDS.md       # Dashboard guide (this file)
 ├── docker-compose.yml                # Full stack orchestration
-├── docker-compose.prod.yml           # Production HA setup
-├── alertmanager.yml                  # AlertManager configuration
 ├── deployment/
 │   ├── DOCKER_SETUP.md              # Docker deployment guide
 │   ├── KUBERNETES_SETUP.md          # Kubernetes deployment
@@ -157,7 +155,7 @@ docker-compose up -d
 |---------|-----|-------------------|
 | Prometheus | http://localhost:9090 | - |
 | Grafana | http://localhost:3000 | admin / admin |
-| AlertManager | http://localhost:9093 | - |
+| Node Exporter | http://localhost:9100 | - |
 | Node Exporter | http://localhost:9100 | - |
 
 ### 4. Configure Targets
