@@ -1,0 +1,306 @@
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+  external_labels:
+    monitor: 'full-stack-monitoring'
+
+alerting:
+  alertmanagers:
+    - static_configs:
+        - targets: ['localhost:9093']
+
+rule_files:
+  - 'alerts.yml'
+  - 'recording_rules.yml'
+
+scrape_configs:
+
+  # ============================================
+  # CORE MONITORING
+  # ============================================
+
+  - job_name: 'prometheus'
+    scrape_interval: 5s
+    scrape_timeout: 5s
+    static_configs:
+      - targets: ['localhost:9090']
+
+  # ============================================
+  # INFRASTRUCTURE MONITORING
+  # ============================================
+
+  # Linux/Unix system metrics
+  - job_name: 'node_exporter'
+    metrics_path: /metrics
+    static_configs:
+      - targets:
+        - 10.0.1.2:9100      # Database server 1
+        - 10.0.1.3:9100      # Application server 1
+        - 10.0.2.2:9100      # Load balancer 1
+        - 10.0.1.4:9100      # Database server 2
+        - 10.0.1.5:9100      # Application server 2
+        - 10.0.1.6:9100      # Cache server
+        - 10.0.1.7:9100      # Message queue server 1
+        - 10.0.1.8:9100      # Message queue server 2
+        - 10.0.1.9:9100      # Backup server
+        - 10.0.1.10:9100     # Kubernetes worker node
+        - 203.0.113.10:9100  # Production web server 1
+        - 203.0.113.11:9100  # Production web server 2
+        - 203.0.113.12:9100  # Production API server
+
+  # HTTP/HTTPS endpoint monitoring and SSL certificate expiration tracking
+  - job_name: 'blackbox_http'
+    metrics_path: /probe
+    params:
+      module: [http_2xx]
+    static_configs:
+      - targets:
+        - https://api.example.com
+        - https://www.example.com
+        - https://service.example.com
+        - https://status.example.com
+    relabel_configs:
+      - source_labels: [__address__]
+        target_label: __param_target
+      - source_labels: [__param_target]
+        target_label: instance
+      - target_label: __address__
+        replacement: 127.0.0.1:9115
+
+  # ICMP/Ping monitoring for network connectivity
+  - job_name: 'blackbox_icmp'
+    metrics_path: /probe
+    params:
+      module: [icmp_ipv4]
+    static_configs:
+      - targets:
+        - 203.0.113.20      # ISP gateway
+        - 203.0.113.21      # Secondary DNS
+        - 10.0.3.100        # Internal gateway
+        - service1.example.local
+    relabel_configs:
+      - source_labels: [__address__]
+        target_label: __param_target
+      - source_labels: [__param_target]
+        target_label: instance
+      - target_label: __address__
+        replacement: 127.0.0.1:9115
+
+  # DNS resolution monitoring and latency tracking
+  - job_name: 'dns_prober'
+    metrics_path: /probe
+    params:
+      module: [dns_probe]
+    static_configs:
+      - targets:
+        - "api.example.com"
+        - "google.com"
+        - "cloud.example.com"
+    relabel_configs:
+      - source_labels: [__address__]
+        target_label: __param_target
+      - source_labels: [__param_target]
+        target_label: instance
+      - target_label: __address__
+        replacement: localhost:9115
+
+  # ============================================
+  # DATABASE MONITORING
+  # ============================================
+
+  # PostgreSQL database monitoring
+  - job_name: 'postgres_exporter'
+    static_configs:
+      - targets: ['10.0.3.4:9187']
+
+  # MongoDB replica set monitoring
+  - job_name: 'mongodb_exporter'
+    static_configs:
+      - targets: ['10.0.3.2:9216']
+
+  # ClickHouse analytics database
+  - job_name: 'clickhouse_exporter'
+    metrics_path: /metrics
+    static_configs:
+      - targets:
+        - 10.0.10.191:9363
+
+  # ============================================
+  # MESSAGE QUEUE & STREAMING
+  # ============================================
+
+  # RabbitMQ message broker
+  - job_name: 'rabbit_mq'
+    metrics_path: /metrics/per-object
+    static_configs:
+      - targets:
+        - 10.0.1.10:15692
+
+  # Kafka broker monitoring
+  - job_name: 'kafka_exporter'
+    metrics_path: /metrics
+    static_configs:
+      - targets:
+        - 10.0.1.2:9308
+
+  # ============================================
+  # APPLICATION MONITORING
+  # ============================================
+
+  # JMX Exporter for Java applications (Kafka, etc.)
+  - job_name: 'jmx_exporter'
+    metrics_path: /metrics
+    static_configs:
+      - targets:
+        - 10.0.1.2:7071
+        - 10.0.1.3:7071
+        - 10.0.1.4:7071
+
+  # Process-level monitoring
+  - job_name: 'process_exporter'
+    static_configs:
+      - targets:
+        - 10.0.70.2:9256
+
+  # Telegraf flexible metrics collection
+  - job_name: 'telegraf'
+    static_configs:
+      - targets:
+        - localhost:9280
+
+  # Push Gateway for batch jobs and ephemeral containers
+  - job_name: 'pushgateway'
+    static_configs:
+      - targets: ['10.0.8.2:9091']
+
+  # ============================================
+  # INFRASTRUCTURE SERVICES
+  # ============================================
+
+  # HAProxy load balancer monitoring
+  - job_name: 'haproxy'
+    static_configs:
+      - targets:
+        - 10.0.2.2:8105
+
+  # Keepalived high availability monitoring
+  - job_name: 'keepalived'
+    static_configs:
+      - targets:
+        - 10.0.2.2:9165
+
+  # eTCD distributed consensus store
+  - job_name: 'etcd'
+    static_configs:
+      - targets:
+        - 10.0.1.2:2379
+        - 10.0.1.3:2379
+        - 10.0.1.4:2379
+
+  # Chrony NTP synchronization monitoring
+  - job_name: 'chrony_exporter'
+    static_configs:
+      - targets:
+        - 10.0.1.2:9109
+        - 10.0.1.3:9109
+        - 10.0.1.4:9109
+        - service1.example.local:9109
+
+  # ============================================
+  # SPECIALIZED MONITORING
+  # ============================================
+
+  # Real-time system monitoring (Netdata)
+  - job_name: 'netdata'
+    static_configs:
+      - targets:
+        - 10.0.3.5:19999
+
+  # VMware vSphere and VM monitoring
+  - job_name: 'vmware_exporter'
+    metrics_path: /metrics
+    static_configs:
+      - targets:
+        - localhost:9272
+        - localhost:9273
+        - localhost:9274
+
+  # VMware vSAN storage monitoring
+  - job_name: 'vsan'
+    static_configs:
+      - targets:
+        - localhost:8000
+
+  # TrueNAS storage system monitoring
+  - job_name: 'truenas'
+    scrape_interval: 1m
+    metrics_path: /metrics
+    static_configs:
+      - targets:
+        - localhost:9210
+
+  # ============================================
+  # NETWORK & SECURITY MONITORING
+  # ============================================
+
+  # Fortigate Firewall - SNMP exporter
+  - job_name: 'snmp_fortigate'
+    static_configs:
+      - targets: ['10.0.206.254']
+    metrics_path: /snmp
+    params:
+      module: [fortigate]
+      auth: [my_auth]
+    relabel_configs:
+      - source_labels: [__address__]
+        target_label: __param_target
+      - target_label: __address__
+        replacement: '10.0.80.2:9116'
+
+  # Fortigate Firewall - Direct exporter
+  - job_name: 'fortigate_exporter'
+    metrics_path: /probe
+    static_configs:
+      - targets:
+        - https://firewall.example.local:11443
+    relabel_configs:
+      - source_labels: [__address__]
+        target_label: __param_target
+      - source_labels: [__param_target]
+        target_label: instance
+        regex: '(?:.+)(?::\/\/)([^:]*).*'
+      - target_label: __address__
+        replacement: 'localhost:9710'
+
+  # Network MTR (Multi-Traceroute) monitoring
+  - job_name: 'mtr_exporter'
+    metrics_path: /metrics
+    static_configs:
+      - targets:
+        - localhost:9570
+
+  # ============================================
+  # HARDWARE MONITORING
+  # ============================================
+
+  # HP iLO (Integrated Lights-Out) - Physical server health
+  - job_name: 'hpilo'
+    scheme: https
+    params:
+      ilo_user: ["administrator"]
+      ilo_password: ["example_password"]
+      ilo_port: ["443"]
+    tls_config:
+      insecure_skip_verify: true
+    static_configs:
+      - targets:
+        - "10.0.110.21"
+        - "10.0.110.22"
+        - "10.0.110.23"
+    relabel_configs:
+      - source_labels: [__address__]
+        target_label: __param_ilo_host
+      - source_labels: [__param_ilo_host]
+        target_label: ilo_host
+      - target_label: __address__
+        replacement: '10.0.80.2:9416'

@@ -1,0 +1,75 @@
+groups:
+  - name: cpu_metrics
+    interval: 30s
+    rules:
+      - record: instance:cpu_usage:5m
+        expr: 100 - (avg by (instance) (rate(node_cpu_seconds_total{mode="idle"}[5m])) * 100)
+
+      - record: instance:cpu_usage:15m
+        expr: 100 - (avg by (instance) (rate(node_cpu_seconds_total{mode="idle"}[15m])) * 100)
+
+      - record: instance:cpu_usage:1h
+        expr: 100 - (avg by (instance) (rate(node_cpu_seconds_total{mode="idle"}[1h])) * 100)
+
+  - name: memory_metrics
+    interval: 30s
+    rules:
+      - record: instance:memory_usage:ratio
+        expr: (node_memory_MemTotal_bytes - node_memory_MemAvailable_bytes) / node_memory_MemTotal_bytes
+
+      - record: instance:memory_available:percentage
+        expr: (node_memory_MemAvailable_bytes / node_memory_MemTotal_bytes) * 100
+
+      - record: instance:swap_usage:ratio
+        expr: (node_memory_SwapTotal_bytes - node_memory_SwapFree_bytes) / node_memory_SwapTotal_bytes
+
+  - name: disk_metrics
+    interval: 30s
+    rules:
+      - record: instance:disk_usage:ratio
+        expr: (1 - (node_filesystem_avail_bytes / node_filesystem_size_bytes))
+
+      - record: instance:disk_usage:percentage
+        expr: (1 - (node_filesystem_avail_bytes / node_filesystem_size_bytes)) * 100
+
+      - record: instance:disk_io_read:5m
+        expr: irate(node_disk_read_bytes_total[5m])
+
+      - record: instance:disk_io_write:5m
+        expr: irate(node_disk_written_bytes_total[5m])
+
+  - name: network_metrics
+    interval: 30s
+    rules:
+      - record: instance:network_in:5m
+        expr: irate(node_network_receive_bytes_total[5m])
+
+      - record: instance:network_out:5m
+        expr: irate(node_network_transmit_bytes_total[5m])
+
+      - record: instance:network_errors:5m
+        expr: irate(node_network_receive_errs_total[5m]) + irate(node_network_transmit_errs_total[5m])
+
+  - name: database_metrics
+    interval: 30s
+    rules:
+      - record: pg:connections:ratio
+        expr: pg_stat_activity_count / pg_settings_max_connections
+
+      - record: pg:cache_hit_ratio:5m
+        expr: rate(pg_stat_database_blks_hit[5m]) / (rate(pg_stat_database_blks_hit[5m]) + rate(pg_stat_database_blks_read[5m]))
+
+      - record: pg:transactions:5m
+        expr: rate(pg_stat_database_xact_commit[5m]) + rate(pg_stat_database_xact_rollback[5m])
+
+  - name: application_metrics
+    interval: 30s
+    rules:
+      - record: rabbitmq:queue_depth:avg
+        expr: avg(rabbitmq_queue_messages_ready) by (queue)
+
+      - record: rabbitmq:message_rate:5m
+        expr: rate(rabbitmq_queue_messages_total[5m]) by (queue)
+
+      - record: kafka:consumer_lag:max
+        expr: max(kafka_consumer_group_lag) by (consumer_group, topic)

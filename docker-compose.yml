@@ -1,0 +1,270 @@
+version: '3.8'
+
+services:
+  # Core Prometheus Stack
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: prometheus
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - ./prometheus/alerts.yml:/etc/prometheus/alerts.yml:ro
+      - ./prometheus/recording_rules.yml:/etc/prometheus/recording_rules.yml:ro
+      - prometheus_data:/prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--storage.tsdb.retention.time=15d'
+      - '--web.enable-lifecycle'
+    restart: unless-stopped
+    networks:
+      - monitoring
+
+  # Grafana for Visualization
+  grafana:
+    image: grafana/grafana:latest
+    container_name: grafana
+    ports:
+      - "3000:3000"
+    environment:
+      GF_SECURITY_ADMIN_PASSWORD: admin
+      GF_INSTALL_PLUGINS: grafana-piechart-panel
+      GF_USERS_ALLOW_SIGN_UP: "false"
+    volumes:
+      - grafana_data:/var/lib/grafana
+      - ./grafana/provisioning:/etc/grafana/provisioning:ro
+    depends_on:
+      - prometheus
+    restart: unless-stopped
+    networks:
+      - monitoring
+
+  # AlertManager for Alert Routing
+  alertmanager:
+    image: prom/alertmanager:latest
+    container_name: alertmanager
+    ports:
+      - "9093:9093"
+    volumes:
+      - ./alertmanager.yml:/etc/alertmanager/alertmanager.yml:ro
+      - alertmanager_data:/alertmanager
+    command:
+      - '--config.file=/etc/alertmanager/alertmanager.yml'
+      - '--storage.path=/alertmanager'
+    restart: unless-stopped
+    networks:
+      - monitoring
+
+  # ============================================
+  # INFRASTRUCTURE MONITORING
+  # ============================================
+
+  # Node Exporter for Host Metrics
+  node_exporter:
+    image: prom/node-exporter:latest
+    container_name: node_exporter
+    ports:
+      - "9100:9100"
+    volumes:
+      - /proc:/host/proc:ro
+      - /sys:/host/sys:ro
+      - /:/rootfs:ro
+    command:
+      - '--path.procfs=/host/proc'
+      - '--path.sysfs=/host/sys'
+      - '--path.rootfs=/rootfs'
+      - '--collector.filesystem.mount-points-exclude=^/(sys|proc|dev|host|etc)($$|/)'
+      - '--collector.netdev.device-exclude=^(veth.*|br.*)$$'
+    restart: unless-stopped
+    networks:
+      - monitoring
+
+  # Blackbox Exporter for Endpoint Monitoring
+  blackbox_exporter:
+    image: prom/blackbox-exporter:latest
+    container_name: blackbox_exporter
+    ports:
+      - "9115:9115"
+    volumes:
+      - ./exporters/blackbox.yml:/etc/blackbox_exporter/blackbox.yml:ro
+    command:
+      - '--config.file=/etc/blackbox_exporter/blackbox.yml'
+    restart: unless-stopped
+    networks:
+      - monitoring
+
+  # ============================================
+  # DATABASE MONITORING
+  # ============================================
+
+  # PostgreSQL Sample Service (Optional)
+  postgres:
+    image: postgres:15-alpine
+    container_name: postgres
+    environment:
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_USER: postgres
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    restart: unless-stopped
+    networks:
+      - monitoring
+
+  # PostgreSQL Exporter
+  postgres_exporter:
+    image: prometheuscommunity/postgres-exporter:latest
+    container_name: postgres_exporter
+    ports:
+      - "9187:9187"
+    environment:
+      DATA_SOURCE_NAME: "postgresql://postgres:postgres@postgres:5432/postgres?sslmode=disable"
+    depends_on:
+      - postgres
+    restart: unless-stopped
+    networks:
+      - monitoring
+
+  # MongoDB Sample Service (Optional)
+  mongodb:
+    image: mongo:latest
+    container_name: mongodb
+    ports:
+      - "27017:27017"
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: root
+      MONGO_INITDB_ROOT_PASSWORD: root
+    volumes:
+      - mongodb_data:/data/db
+    restart: unless-stopped
+    networks:
+      - monitoring
+
+  # MongoDB Exporter
+  mongodb_exporter:
+    image: percona/mongodb_exporter:latest
+    container_name: mongodb_exporter
+    ports:
+      - "9216:9216"
+    environment:
+      MONGODB_URI: "mongodb://root:root@mongodb:27017"
+    depends_on:
+      - mongodb
+    restart: unless-stopped
+    networks:
+      - monitoring
+
+  # ============================================
+  # MESSAGE QUEUE MONITORING
+  # ============================================
+
+  # RabbitMQ Sample Service (Optional)
+  rabbitmq:
+    image: rabbitmq:3-management-alpine
+    container_name: rabbitmq
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    environment:
+      RABBITMQ_DEFAULT_USER: guest
+      RABBITMQ_DEFAULT_PASS: guest
+    volumes:
+      - rabbitmq_data:/var/lib/rabbitmq
+    restart: unless-stopped
+    networks:
+      - monitoring
+
+  # RabbitMQ Exporter
+  rabbitmq_exporter:
+    image: kbudde/rabbitmq-exporter:latest
+    container_name: rabbitmq_exporter
+    ports:
+      - "15692:15692"
+    environment:
+      RABBITMQ_URL: "http://rabbitmq:15672"
+      RABBITMQ_USER: guest
+      RABBITMQ_PASSWORD: guest
+      PUBLISH_PORT: "15692"
+    depends_on:
+      - rabbitmq
+    restart: unless-stopped
+    networks:
+      - monitoring
+
+  # ============================================
+  # APPLICATION MONITORING
+  # ============================================
+
+  # Telegraf for Flexible Metrics
+  telegraf:
+    image: telegraf:latest
+    container_name: telegraf
+    ports:
+      - "9280:9280"
+    volumes:
+      - ./exporters/telegraf.conf:/etc/telegraf/telegraf.conf:ro
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    depends_on:
+      - prometheus
+    restart: unless-stopped
+    networks:
+      - monitoring
+
+  # Push Gateway for Batch Jobs
+  pushgateway:
+    image: prom/pushgateway:latest
+    container_name: pushgateway
+    ports:
+      - "9091:9091"
+    restart: unless-stopped
+    networks:
+      - monitoring
+
+  # ============================================
+  # INFRASTRUCTURE SERVICES
+  # ============================================
+
+  # HAProxy Load Balancer (Optional)
+  haproxy:
+    image: haproxy:2-alpine
+    container_name: haproxy
+    ports:
+      - "8105:8105"
+    volumes:
+      - ./exporters/haproxy.cfg:/usr/local/etc/haproxy/haproxy.cfg:ro
+    restart: unless-stopped
+    networks:
+      - monitoring
+
+  # Netdata Real-time Monitoring
+  netdata:
+    image: netdata/netdata:latest
+    container_name: netdata
+    ports:
+      - "19999:19999"
+    cap_add:
+      - SYS_PTRACE
+    security_opt:
+      - apparmor=unconfined
+    volumes:
+      - /proc:/host/proc:ro
+      - /sys:/host/sys:ro
+      - /etc/passwd:/host/etc/passwd:ro
+      - /etc/group:/host/etc/group:ro
+    restart: unless-stopped
+    networks:
+      - monitoring
+
+volumes:
+  prometheus_data:
+  grafana_data:
+  alertmanager_data:
+  postgres_data:
+  mongodb_data:
+  rabbitmq_data:
+
+networks:
+  monitoring:
+    driver: bridge

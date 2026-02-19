@@ -1,0 +1,103 @@
+global:
+  resolve_timeout: 5m
+  slack_api_url: 'SLACK_WEBHOOK_URL'
+
+templates:
+  - '/etc/alertmanager/templates/*.tmpl'
+
+route:
+  receiver: 'default-receiver'
+  group_by: ['alertname', 'cluster', 'service', 'severity']
+  group_wait: 10s
+  group_interval: 10s
+  repeat_interval: 12h
+
+  routes:
+    # Critical alerts - Immediate notification
+    - match:
+        severity: critical
+      receiver: 'critical-receiver'
+      group_wait: 0s
+      repeat_interval: 4h
+
+    # Warning alerts - Batched notifications
+    - match:
+        severity: warning
+      receiver: 'warning-receiver'
+      group_wait: 30s
+      repeat_interval: 24h
+
+    # Info alerts - Daily summary
+    - match:
+        severity: info
+      receiver: 'info-receiver'
+      group_wait: 5m
+      repeat_interval: 24h
+
+receivers:
+  # Default receiver - Email
+  - name: 'default-receiver'
+    email_configs:
+      - to: 'alerts@example.com'
+        from: 'alertmanager@example.com'
+        smarthost: 'smtp.example.com:587'
+        auth_username: 'user@example.com'
+        auth_password: 'password'
+        headers:
+          Subject: '[{{ .GroupLabels.severity }}] {{ .GroupLabels.alertname }}'
+
+  # Critical alerts - Slack + PagerDuty
+  - name: 'critical-receiver'
+    slack_configs:
+      - api_url: 'SLACK_WEBHOOK_URL'
+        channel: '#critical-alerts'
+        title: 'Critical Alert: {{ .GroupLabels.alertname }}'
+        text: '{{ range .Alerts }}{{ .Annotations.description }}{{ end }}'
+        send_resolved: true
+        color: '{{ if eq .Status "firing" }}danger{{ else }}good{{ end }}'
+
+    pagerduty_configs:
+      - service_key: 'PAGERDUTY_SERVICE_KEY'
+        description: '{{ .GroupLabels.alertname }} on {{ .GroupLabels.instance }}'
+
+  # Warning alerts - Slack
+  - name: 'warning-receiver'
+    slack_configs:
+      - api_url: 'SLACK_WEBHOOK_URL'
+        channel: '#monitoring-alerts'
+        title: 'Warning: {{ .GroupLabels.alertname }}'
+        text: '{{ range .Alerts }}{{ .Annotations.description }}{{ end }}'
+        send_resolved: true
+
+  # Info alerts - Email digest
+  - name: 'info-receiver'
+    email_configs:
+      - to: 'monitoring@example.com'
+        from: 'alertmanager@example.com'
+        smarthost: 'smtp.example.com:587'
+        auth_username: 'user@example.com'
+        auth_password: 'password'
+        headers:
+          Subject: 'Daily Monitoring Summary'
+
+inhibit_rules:
+  # Inhibit warning/info if critical alert exists
+  - source_match:
+      severity: 'critical'
+    target_match_re:
+      severity: 'warning|info'
+    equal: ['alertname', 'instance']
+
+  # Inhibit info if warning exists
+  - source_match:
+      severity: 'warning'
+    target_match:
+      severity: 'info'
+    equal: ['alertname', 'instance']
+
+  # Inhibit if instance is down
+  - source_match:
+      alertname: 'InstanceDown'
+    target_match_re:
+      alertname: '.*'
+    equal: ['instance']
