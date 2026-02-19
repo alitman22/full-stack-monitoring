@@ -259,36 +259,28 @@ Comprehensive overview of all monitoring components and their capabilities inclu
 
 ### By Infrastructure Layer
 
-```
-┌─────────────────────────────────────────┐
-│ Application Level                       │
-│ ├─ JMX Exporter (Java apps)            │
-│ ├─ Process Exporter                     │
-│ └─ Telegraf (Custom)                    │
-├─────────────────────────────────────────┤
-│ Database Level                          │
-│ ├─ PostgreSQL Exporter                  │
-│ ├─ MongoDB Exporter                     │
-│ └─ ClickHouse Exporter                  │
-├─────────────────────────────────────────┤
-│ Service Level                           │
-│ ├─ RabbitMQ Exporter                    │
-│ ├─ Kafka Exporter                       │
-│ ├─ HAProxy Exporter                     │
-│ └─ Keepalived Exporter                  │
-├─────────────────────────────────────────┤
-│ Network Level                           │
-│ ├─ Blackbox Exporter                    │
-│ ├─ Fortigate Exporter                   │
-│ └─ SNMP Exporter                        │
-├─────────────────────────────────────────┤
-│ Infrastructure Level                    │
-│ ├─ Node Exporter (Linux/Unix)           │
-│ ├─ VMware Exporter                      │
-│ ├─ iLO Exporter (Hardware)              │
-│ ├─ Chrony Exporter (NTP)                │
-│ └─ Netdata (Real-time)                  │
-└─────────────────────────────────────────┘
+```mermaid
+graph TB
+    COVERAGE["Monitoring Coverage by Layer"]
+    
+    APP["Application Level<br/>├─ JMX Exporter Java<br/>├─ Process Exporter<br/>└─ Telegraf Custom"]
+    DB["Database Level<br/>├─ PostgreSQL Exporter<br/>├─ MongoDB Exporter<br/>└─ ClickHouse Exporter"]
+    SVC["Service Level<br/>├─ RabbitMQ Exporter<br/>├─ Kafka Exporter<br/>├─ HAProxy Exporter<br/>└─ Keepalived Exporter"]
+    NET["Network Level<br/>├─ Blackbox Exporter<br/>├─ Fortigate Exporter<br/>└─ SNMP Exporter"]
+    INFRA["Infrastructure Level<br/>├─ Node Exporter Linux/Unix<br/>├─ VMware Exporter<br/>├─ iLO Exporter Hardware<br/>├─ Chrony Exporter NTP<br/>└─ Netdata Real-time"]
+    
+    COVERAGE --> APP
+    COVERAGE --> DB
+    COVERAGE --> SVC
+    COVERAGE --> NET
+    COVERAGE --> INFRA
+    
+    style COVERAGE fill:#4285F4,color:#fff
+    style APP fill:#34A853,color:#fff
+    style DB fill:#FBBC04,color:#333
+    style SVC fill:#EA4335,color:#fff
+    style NET fill:#9C27B0,color:#fff
+    style INFRA fill:#00BCD4,color:#fff
 ```
 
 ---

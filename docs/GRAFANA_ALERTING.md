@@ -112,14 +112,21 @@ Password: your-app-password
 
 ### Basic Structure
 
-```
-Query & Condition
-    ↓
-Evaluation Interval (e.g., every 1m)
-    ↓
-For Duration (e.g., 5m)
-    ↓
-Contact Point (where to send)
+```mermaid
+graph TD
+    QUERY["Query & Condition"]
+    EVAL["Evaluation Interval<br/>e.g., every 1m"]
+    FOR["For Duration<br/>e.g., 5m"]
+    CONTACT["Contact Point<br/>where to send"]
+    
+    QUERY --> EVAL
+    EVAL --> FOR
+    FOR --> CONTACT
+    
+    style QUERY fill:#4285F4,color:#fff
+    style EVAL fill:#FF9800,color:#fff
+    style FOR fill:#2196F3,color:#fff
+    style CONTACT fill:#4CAF50,color:#fff
 ```
 
 ### Evaluation
@@ -224,16 +231,25 @@ Alert routing determines which contact points receive which alerts.
 1. Navigate to **Alerting** → **Notification policies**
 2. Configure routing tree:
 
-```
-(Root)
-├─ Default contact point: Email
-├─ Match labels:
-│  ├─ severity=critical
-│  │  └─ Contact: PagerDuty + Email
-│  ├─ team=database
-│  │  └─ Contact: DBA Team Email
-│  └─ team=infrastructure
-│     └─ Contact: Ops Team Slack
+```mermaid
+graph TD
+    ROOT["Root Notification Policy"]
+    
+    DEFAULT["Default Contact Point<br/>Email"]
+    CRIT["severity=critical<br/>Contact: PagerDuty + Email"]
+    DB["team=database<br/>Contact: DBA Team Email"]
+    OPS["team=infrastructure<br/>Contact: Ops Team Slack"]
+    
+    ROOT --> DEFAULT
+    ROOT --> CRIT
+    ROOT --> DB
+    ROOT --> OPS
+    
+    style ROOT fill:#4285F4,color:#fff
+    style DEFAULT fill:#34A853,color:#fff
+    style CRIT fill:#EA4335,color:#fff
+    style DB fill:#FBBC04,color:#333
+    style OPS fill:#4285F4,color:#fff
 ```
 
 ### Grouping

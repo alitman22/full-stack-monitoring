@@ -201,24 +201,31 @@ High (5%+):   Kafka, VMware, Netdata
 
 ### Recommended Instance Placement
 
-```
-├─ Prometheus Server
-│  └─ Local exporters (Node, Telegraf, etc.)
-│
-├─ Web Servers
-│  └─ Node Exporter (pull)
-│
-├─ Database Servers
-│  └─ Service-specific exporters (postgres, mongo, etc.)
-│
-├─ Load Balancers
-│  └─ HAProxy/Keepalived exporters
-│
-├─ Edge/Specialized
-│  └─ VMware, Firewall, iLO exporters (may be central)
-│
-└─ Remote/External
-   └─ Blackbox Exporter (local to Prometheus)
+```mermaid
+graph TD
+    PLACE["Recommended Exporter Placement"]
+    
+    PROM["Prometheus Server<br/>└─ Local exporters<br/>   Node, Telegraf, etc."]
+    WEB["Web Servers<br/>└─ Node Exporter pull"]
+    DB["Database Servers<br/>└─ Service-specific<br/>   postgres, mongo, etc."]
+    LB["Load Balancers<br/>└─ HAProxy/Keepalived<br/>   exporters"]
+    EDGE["Edge/Specialized<br/>└─ VMware, Firewall, iLO<br/>   may be central"]
+    REMOTE["Remote/External<br/>└─ Blackbox Exporter<br/>   local to Prometheus"]
+    
+    PLACE --> PROM
+    PLACE --> WEB
+    PLACE --> DB
+    PLACE --> LB
+    PLACE --> EDGE
+    PLACE --> REMOTE
+    
+    style PLACE fill:#4285F4,color:#fff
+    style PROM fill:#34A853,color:#fff
+    style WEB fill:#FBBC04,color:#333
+    style DB fill:#EA4335,color:#fff
+    style LB fill:#9C27B0,color:#fff
+    style EDGE fill:#FF5722,color:#fff
+    style REMOTE fill:#00BCD4,color:#fff
 ```
 
 ## Migration Guide

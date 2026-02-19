@@ -23,240 +23,252 @@ Comprehensive reference architecture for enterprise-grade monitoring infrastruct
 
 ## Data Flow
 
+```mermaid
+graph TD
+    TARGETS["MONITORING TARGETS<br/>Servers, Databases<br/>Services, Applications"]
+    
+    EXP["Exporters<br/>(9100-9400)<br/>Node, Custom, etc"]
+    BX["Blackbox<br/>(9115)<br/>Synthetic Tests"]
+    PG["Pushgateway<br/>(9091)<br/>Batch Jobs"]
+    
+    PROM["Prometheus (9090)<br/>- Scrape targets<br/>- Store metrics<br/>- Evaluate rules<br/>- Trigger alerts"]
+    
+    GRAF["Grafana<br/>(3000)<br/>Dashboards"]
+    RSTOR1["Remote<br/>Storage"]
+    RSTOR2["Remote<br/>Storage"]
+    
+    NOTIF["Dashboards, Alerts<br/>Notifications<br/>Email, Webhook, Slack,<br/>Teams, PagerDuty"]
+    
+    TARGETS --> EXP
+    TARGETS --> BX
+    TARGETS --> PG
+    
+    EXP --> PROM
+    BX --> PROM
+    PG --> PROM
+    
+    PROM --> GRAF
+    PROM --> RSTOR1
+    PROM --> RSTOR2
+    
+    GRAF --> NOTIF
+    
+    style TARGETS fill:#4285F4,color:#fff
+    style EXP fill:#34A853,color:#fff
+    style BX fill:#FF9800,color:#fff
+    style PG fill:#2196F3,color:#fff
+    style PROM fill:#607D8B,color:#fff
+    style GRAF fill:#00BCD4,color:#fff
+    style RSTOR1 fill:#9C27B0,color:#fff
+    style RSTOR2 fill:#9C27B0,color:#fff
+    style NOTIF fill:#D32F2F,color:#fff
 ```
-┌─────────────────────────────────────────────────────────┐
-│                   MONITORING TARGETS                     │
-├────────────┬──────────────┬──────────────┬───────────────┤
-│ Servers    │ Databases    │ Services     │ Applications  │
-│ (Node)     │ (PostgreSQL) │ (RabbitMQ)   │ (JMX)         │
-│ (Windows)  │ (MongoDB)    │ (Kafka)      │ (Custom)      │
-│            │ (ClickHouse) │ (Redis)      │ (Telegraf)    │
-└────────────┴──────────────┴──────────────┴───────────────┘
-             │                    │               │
-             ▼                    ▼               ▼
-     ┌───────────────┐   ┌──────────────┐   ┌──────────┐
-     │   Exporters   │   │  Blackbox    │   │ Pushgw   │
-     │  9100-9400    │   │   9115       │   │ 9091     │
-     └───────────────┘   └──────────────┘   └──────────┘
-             │                    │               │
-             └────────────────────┼───────────────┘
-                                  │
-                    ┌─────────────▼──────────────┐
-                    │      Prometheus (9090)     │
-                    │                            │
-                    │ - Scrape targets           │
-                    │ - Store metrics            │
-                    │ - Evaluate rules           │
-                    │ - Trigger alerts           │
-                    └─────────────┬──────────────┘
-                                  │
-             ┌────────────────────┼────────────────────┐
-             │                    │                    │
-             ▼                    ▼                    ▼
-      ┌────────────┐       ┌─────────────┐      ┌──────────┐
-      │  Grafana   │       │Remote       │      │ Remote   │
-      │  (3000)    │       │Storage      │      │ Storage  │
-      └────────────┘       └─────────────┘      └──────────┘
-             │
-      ┌──────┴────────────────────────┐
-      │   Dashboards, Alerts &         │
-      │   Notifications (Email,        │
-      │   Webhook, Slack, Teams,       │
-      │   PagerDuty)                   │
-      └────────────────────────────────┘
+
+
+    RSTOR["Remote Storage"]
+    NOTIF["Dashboards, Alerts &<br/>Notifications<br/>(Email, Webhook,<br/>Slack, Teams, PagerDuty)"]
+    
+    EXP --> PROM
+    BX --> PROM
+    PG --> PROM
+    PROM --> GRAF
+    PROM --> RSTOR
+    GRAF --> NOTIF
+    
+    style PROM fill:#f9f,stroke:#333,stroke-width:2px
+    style GRAF fill:#bbf,stroke:#333,stroke-width:2px
 ```
 
 ## Monitoring Layers
 
 ### Layer 1: Infrastructure Monitoring
-```
-┌─────────────────────────────────────┐
-│    Infrastructure Layer              │
-├─────────────────────────────────────┤
-│ Node Exporter → Linux/Unix nodes     │
-│ Windows Exporter → Windows servers   │
-│ Blackbox → HTTP/DNS/TCP endpoints    │
-│ Netdata → Real-time system stats     │
-└─────────────────────────────────────┘
-        ↓
-   System Metrics:
-   • CPU, Memory, Disk, Network
-   • Processes, File descriptors
-   • Load average, Uptime
+
+```mermaid
+graph TD
+    subgraph INF ["Infrastructure Layer"]
+        NE["Node Exporter<br/>(Linux/Unix)"]
+        WE["Windows Exporter<br/>(Windows)"]
+        BX["Blackbox<br/>(HTTP/DNS/TCP)"]
+        ND["Netdata<br/>(Real-time)"]
+    end
+    METRICS["System Metrics:<br/>CPU, Memory, Disk, Network<br/>Processes, File descriptors<br/>Load average, Uptime"]
+    
+    NE --> METRICS
+    WE --> METRICS
+    BX --> METRICS
+    ND --> METRICS
+    
+    style INF fill:#e1f5ff
+    style METRICS fill:#fff3e0
 ```
 
 ### Layer 2: Data & Storage Layer
-```
-┌─────────────────────────────────────┐
-│    Data Layer                        │
-├─────────────────────────────────────┤
-│ PostgreSQL Exporter → RDBMS         │
-│ MongoDB Exporter → Document DB      │
-│ ClickHouse Exporter → Analytics     │
-└─────────────────────────────────────┘
-        ↓
-   Database Metrics:
-   • Connections, Query performance
-   • Replication lag, Cache hit ratio
-   • Storage usage, Slow queries
+
+```mermaid
+graph TD
+    subgraph DATA ["Data Layer"]
+        PE["PostgreSQL Exporter<br/>(RDBMS)"]
+        ME["MongoDB Exporter<br/>(Document DB)"]
+        CE["ClickHouse Exporter<br/>(Analytics)"]
+    end
+    METRICS2["Database Metrics:<br/>Connections, Query performance<br/>Replication lag, Cache hit ratio<br/>Storage usage, Slow queries"]
+    
+    PE --> METRICS2
+    ME --> METRICS2
+    CE --> METRICS2
+    
+    style DATA fill:#f3e5f5
+    style METRICS2 fill:#fff3e0
 ```
 
 ### Layer 3: Message & Event Layer
-```
-┌─────────────────────────────────────┐
-│    Message Layer                     │
-├─────────────────────────────────────┤
-│ RabbitMQ Exporter → Message queue   │
-│ Kafka Exporter → Event streaming    │
-│ Telegraf → Custom metrics           │
-└─────────────────────────────────────┘
-        ↓
-   Application Metrics:
-   • Queue depth, Throughput
-   • Consumer lag, Broker health
-   • Custom application metrics
+
+```mermaid
+graph TD
+    subgraph MSG ["Message Layer"]
+        RE["RabbitMQ Exporter<br/>(Message Queue)"]
+        KE["Kafka Exporter<br/>(Event Streaming)"]
+        TE["Telegraf<br/>(Custom)"]
+    end
+    METRICS3["Application Metrics:<br/>Queue depth, Throughput<br/>Consumer lag, Broker health<br/>Custom application metrics"]
+    
+    RE --> METRICS3
+    KE --> METRICS3
+    TE --> METRICS3
+    
+    style MSG fill:#e8f5e9
+    style METRICS3 fill:#fff3e0
 ```
 
 ### Layer 4: Network & Services Layer
-```
-┌─────────────────────────────────────┐
-│    Network Layer                     │
-├─────────────────────────────────────┤
-│ HAProxy Exporter → Load balancer    │
-│ Keepalived → High availability      │
-│ Fortigate → Firewall metrics        │
-│ DNS Prober → DNS resolution         │
-└─────────────────────────────────────┘
-        ↓
-   Service Metrics:
-   • Load balancer stats
-   • Network throughput
-   • Availability, Latency
+
+```mermaid
+graph TD
+    subgraph NET ["Network Layer"]
+        HE["HAProxy Exporter<br/>(Load Balancer)"]
+        KV["Keepalived<br/>(High Availability)"]
+        FG["Fortigate<br/>(Firewall)"]
+        DP["DNS Prober<br/>(DNS Resolution)"]
+    end
+    METRICS4["Service Metrics:<br/>Load balancer stats<br/>Network throughput<br/>Availability, Latency"]
+    
+    HE --> METRICS4
+    KV --> METRICS4
+    FG --> METRICS4
+    DP --> METRICS4
+    
+    style NET fill:#fce4ec
+    style METRICS4 fill:#fff3e0
 ```
 
 ### Layer 5: Specialized Monitoring
-```
-┌─────────────────────────────────────┐
-│    Specialized Layer                 │
-├─────────────────────────────────────┤
-│ VMware Exporter → Virtualization    │
-│ TrueNAS Exporter → Storage          │
-│ iLO Exporter → Hardware health      │
-│ Chrony → NTP synchronization        │
-│ JMX Exporter → Java applications    │
-└─────────────────────────────────────┘
-        ↓
-   Domain-Specific Metrics:
-   • VM/host metrics
-   • Storage pool health
-   • Server BMC metrics
-   • Application JVM metrics
+
+```mermaid
+graph TD
+    subgraph SPEC ["Specialized Layer"]
+        VM["VMware Exporter<br/>(Virtualization)"]
+        TN["TrueNAS Exporter<br/>(Storage)"]
+        IL["iLO Exporter<br/>(Hardware Health)"]
+        CR["Chrony<br/>(NTP Sync)"]
+        JX["JMX Exporter<br/>(Java Apps)"]
+    end
+    METRICS5["Domain-Specific Metrics:<br/>VM/host metrics<br/>Storage pool health<br/>Server BMC metrics<br/>Application JVM metrics"]
+    
+    VM --> METRICS5
+    TN --> METRICS5
+    IL --> METRICS5
+    CR --> METRICS5
+    JX --> METRICS5
+    
+    style SPEC fill:#fff3e0
+    style METRICS5 fill:#fff3e0
 ```
 
 ## Metric Collection Strategy
 
 ### Pull Model (Prometheus Native)
-```
-Prometheus → Exporter → Target
-    120s scrape interval
-    15s default
-    Automatic service discovery
+
+```mermaid
+graph LR
+    PROM["Prometheus"] -->|15-120s interval| EXP["Exporter"]
+    EXP -->|scrape| TARGET["Target"]
 ```
 
 ### Push Model (Pushgateway)
-```
-Application → Pushgateway → Prometheus
-    For batch jobs
-    For short-lived processes
-    For firewall-restricted targets
+
+```mermaid
+graph LR
+    APP["Application<br/>(Batch Jobs)"] -->|push| PG["Pushgateway"]
+    PG -->|scrape| PROM2["Prometheus"]
 ```
 
 ### Federation
-```
-Prometheus (Local) → Prometheus (Remote)
-    Multi-datacenter support
-    Hierarchical metrics collection
-    Regional aggregation
+
+```mermaid
+graph LR
+    PROMLOCAL["Prometheus<br/>(Local)"] -->|federate| PROMREMOTE["Prometheus<br/>(Remote)"]
+    PROMREMOTE -.->|multi-datacenter| PROMLOCAL
 ```
 
 ## High Availability Architecture
 
-```
-┌──────────────────┐          ┌──────────────────┐
-│   Prometheus 1   │          │   Prometheus 2   │
-│    (Primary)     │          │   (Secondary)    │
-└────────┬─────────┘          └────────┬─────────┘
-         │                             │
-         └─────────────┬───────────────┘
-                       │
-                    ┌──▼──┐
-                    │ LB   │
-                    └─┬────┘
-                      │
-        ┌─────────────┼─────────────┐
-        │             │             │
-    ┌───▼───┐  ┌─────▼────┐  ┌────▼───┐
-    │Grafana│  │AlertMgr 1│  │AlertMgr2│
-    └───────┘  └──────────┘  └────────┘
-        │             │              │
-        └─────────────┴──────────────┘
-                      │
-         ┌────────────▼────────────┐
-         │  Remote Storage (S3)    │
-         │  Backup location        │
-         │  Long-term retention    │
-         └─────────────────────────┘
+```mermaid
+graph TD
+    P1["Prometheus 1<br/>(Primary)"]
+    P2["Prometheus 2<br/>(Secondary)"]
+    LB["Load Balancer"]
+    GRAF["Grafana"]
+    RS["Remote Storage<br/>(S3)"]
+    
+    P1 -->|replicate| LB
+    P2 -->|replicate| LB
+    LB --> GRAF
+    P1 --> RS
+    P2 --> RS
+    
+    style P1 fill:#e3f2fd
+    style P2 fill:#e3f2fd
+    style LB fill:#fff3e0
+    style GRAF fill:#bbf
+    style RS fill:#c8e6c9
 ```
 
 ## Alert Flow
-
 ```
-1. Rule Evaluation
-   Prometheus evaluates alert rules every 30s
 
-2. Alert Generation
-   {alertname, instance, severity, ...} created
-   Fired/Resolved states tracked
-
-3. Alert Deduplication
-   Grafana groups similar alerts
-   group_by: [alertname, instance]
-   group_wait: 10s (batch collection)
-
-4. Route Matching
-   Grafana routing rules applied
-   Critical → Immediate dispatch
-   Warning → Batch in 30s
-   Info → Daily digest
-
-5. Notification
-   Severity->Contact point mapping
-   Email, Slack, Teams, PagerDuty, Webhook, etc.
-   Escalation policies applied
-
-6. Silencing/Inhibition
-   Built-in silencing feature
-   Prevents alert storms
-   Maintenance window support
+```mermaid
+sequenceDiagram
+    participant Prometheus
+    participant Grafana
+    participant GroupingEngine as Grouping Engine
+    participant Router
+    participant ContactPoint as Contact Points
+    
+    Prometheus->>Grafana: 1. Rule Evaluation
+    Grafana->>Grafana: 2. Generate Alerts
+    Grafana->>GroupingEngine: 3. Deduplicate/Group
+    GroupingEngine->>Router: 4. Route Matching
+    Router->>ContactPoint: 5. Send Notifications
+    ContactPoint->>ContactPoint: 6. Silencing
 ```
 
 ## Metric Retention Policies
 
-```
-Real-time Metrics (Prometheus)
-├─ 15 days (default)
-├─ Resolution: 15-30 seconds
-└─ Use case: Dashboards, immediate alerting
-
-Recording Rules (Pre-aggregated)
-├─ 5-minute intervals
-├─ Resolution: 5 minutes
-└─ Use case: Historical analysis, dashboards
-
-Remote Storage (Long-term)
-├─ 1+ years (configurable)
-├─ Resolution: 1-hour average
-└─ Use case: Trend analysis, compliance
+```mermaid
+graph TD
+    RETENTION["Retention Strategy"]
+    
+    RT["Real-time<br/>(Prometheus)<br/>15 days<br/>Resolution: 15-30s<br/>Use: Dashboards, Alerts"]
+    RR["Recording Rules<br/>(Pre-aggregated)<br/>5-min intervals<br/>Resolution: 5 min<br/>Use: Historical, Dashboards"]
+    RS["Remote Storage<br/>(Long-term)<br/>1+ years<br/>Resolution: 1-hour avg<br/>Use: Trends, Compliance"]
+    
+    RETENTION --> RT
+    RETENTION --> RR
+    RETENTION --> RS
+    
+    style RT fill:#e1f5ff
+    style RR fill:#f3e5f5
+    style RS fill:#c8e6c9
 ```
 
 ## Scalability Considerations
@@ -288,14 +300,25 @@ Remote Storage (Long-term)
 ## Security Architecture
 
 ### Network Security
-```
-Internet (Blocked by Firewall)
-    ↓
-LoadBalancer/Nginx (TLS termination)
-    ↓
-Internal Network
-    ├─ Prometheus (no auth)
-    └─ Grafana (HTTP Auth + LDAP/OIDC)
+
+```mermaid
+graph TD
+    INT["Internet<br/>(Blocked by Firewall)"]
+    LB["LoadBalancer/Nginx<br/>(TLS Termination)"]
+    INTERNAL["Internal Network"]
+    PROM["Prometheus<br/>(No Auth)"]
+    GRAF["Grafana<br/>(HTTP Auth +<br/>LDAP/OIDC)"]
+    
+    INT -->|blocked| LB
+    LB --> INTERNAL
+    INTERNAL --> PROM
+    INTERNAL --> GRAF
+    
+    style INT fill:#ffcdd2
+    style LB fill:#fff3e0
+    style INTERNAL fill:#c8e6c9
+    style PROM fill:#e3f2fd
+    style GRAF fill:#e3f2fd
 ```
 
 ### Data Security
@@ -371,6 +394,20 @@ Prometheus Health
 ├─ Ingestion rate
 ├─ Storage utilization
 └─ Query latency
+```
+
+```mermaid
+graph TD
+    HEALTH["Monitoring Stack Health"]
+    
+    GH["Grafana Health<br/>✓ Alert evaluation<br/>✓ Notification delivery<br/>✓ Dashboard render time<br/>✓ Datasource connectivity<br/>✓ User sessions"]
+    PH["Prometheus Health<br/>✓ Scrape success rate<br/>✓ Ingestion rate<br/>✓ Storage utilization<br/>✓ Query latency"]
+    
+    HEALTH --> GH
+    HEALTH --> PH
+    
+    style GH fill:#bbf
+    style PH fill:#f9f
 ```
 
 ## Best Practices Summary

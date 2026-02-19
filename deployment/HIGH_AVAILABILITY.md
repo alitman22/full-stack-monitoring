@@ -13,25 +13,29 @@ High availability monitoring requires:
 
 ## Architecture
 
-```
-┌─────────────────────────────────────────────────┐
-│           Load Balancer (HAProxy)               │
-│  Distributes traffic across Prometheus instances│
-└──────────────────┬──────────────────────────────┘
-                   │
-        ┌──────────┼──────────┐
-        │          │          │
-    ┌───▼──┐   ┌──▼───┐   ┌──▼───┐
-    │Prom  │   │Prom  │   │Prom  │
-    │  1   │   │  2   │   │  3   │
-    └───┬──┘   └──┬───┘   └──┬───┘
-        │         │         │
-        └─────────┼─────────┘
-                  │
-        ┌─────────▼─────────┐
-        │ Remote Storage    │
-        │ (S3, MinIO, etc)  │
-        └───────────────────┘
+```mermaid
+graph TD
+    LB["Load Balancer HAProxy<br/>Distributes traffic<br/>across Prometheus instances"]
+    
+    PROM1["Prometheus 1"]
+    PROM2["Prometheus 2"]
+    PROM3["Prometheus 3"]
+    
+    STORAGE["Remote Storage<br/>S3, MinIO, etc"]
+    
+    LB --> PROM1
+    LB --> PROM2
+    LB --> PROM3
+    
+    PROM1 --> STORAGE
+    PROM2 --> STORAGE
+    PROM3 --> STORAGE
+    
+    style LB fill:#FF9800,color:#fff
+    style PROM1 fill:#9C27B0,color:#fff
+    style PROM2 fill:#9C27B0,color:#fff
+    style PROM3 fill:#9C27B0,color:#fff
+    style STORAGE fill:#00BCD4,color:#fff
 ```
 
 ## Multi-Prometheus Setup

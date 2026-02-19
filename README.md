@@ -55,33 +55,46 @@ This project demonstrates a **multi-layer, enterprise-grade monitoring solution*
 
 ## 🏗️ Architecture
 
-```
-┌─────────────────────────────────────────────────────────────┐
-│                    Monitoring Targets                        │
-│  ┌────────┐ ┌──────────┐ ┌──────────┐ ┌──────────┐         │
-│  │Nodes   │ │Databases │ │Services  │ │Endpoints │         │
-│  └────────┘ └──────────┘ └──────────┘ └──────────┘         │
-└──────────────────────────┬──────────────────────────────────┘
-                           │
-          ┌────────────────┼────────────────┐
-          │                │                │
-      ┌───▼────┐   ┌──────▼─────┐   ┌─────▼────┐
-      │Exporters│   │Blackbox    │   │Pushgw    │
-      └────┬────┘   └──────┬─────┘   └─────┬────┘
-           │               │              │
-           └───────────────┼──────────────┘
-                           │
-                    ┌──────▼──────┐
-                    │ Prometheus  │
-                    │  (Storage)  │
-                    └──────┬──────┘
-                           │
-              ┌────────────┼────────────┐
-              │            │            │
-           ┌──▼──┐    ┌────▼───┐  ┌───▼────┐
-           │ Grafana │  │Alerting  │  │Rules    │
-           │Dashboards │  │       │  │Engine   │
-           └────────┘   └────────┘   └────────┘
+```mermaid
+graph TD
+    TARGETS["Monitoring Targets"]
+    
+    NODES["Nodes<br/>Infrastructure"]
+    DBS["Databases<br/>Data Layer"]
+    SVCS["Services<br/>Application"]
+    EPS["Endpoints<br/>Network Health"]
+    
+    TARGETS --> NODES
+    TARGETS --> DBS
+    TARGETS --> SVCS
+    TARGETS --> EPS
+    
+    NODES --> EXP["Exporters<br/>Pull Metrics"]
+    DBS --> EXP
+    SVCS --> EXP
+    
+    EXP --> BB["Blackbox Exporter<br/>Synthetic Tests"]
+    EXP --> PG["Pushgateway<br/>Batch Jobs"]
+    
+    BB --> PROM["Prometheus<br/>Time Series DB"]
+    PG --> PROM
+    
+    PROM --> GRAF["Grafana<br/>Dashboards"]
+    PROM --> ALERT["Alert Rules<br/>Rule Engine"]
+    PROM --> RULES["Recording Rules<br/>Aggregation"]
+    
+    style TARGETS fill:#4285F4,color:#fff
+    style NODES fill:#34A853,color:#fff
+    style DBS fill:#FBBC04,color:#333
+    style SVCS fill:#EA4335,color:#fff
+    style EPS fill:#9C27B0,color:#fff
+    style EXP fill:#FF9800,color:#fff
+    style BB fill:#009688,color:#fff
+    style PG fill:#2196F3,color:#fff
+    style PROM fill:#607D8B,color:#fff
+    style GRAF fill:#00BCD4,color:#fff
+    style ALERT fill:#D32F2F,color:#fff
+    style RULES fill:#512DA8,color:#fff
 ```
 
 ## 📁 Project Structure
