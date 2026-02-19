@@ -24,6 +24,17 @@ c:\Users\Alitman\.vscode\Projects\full-stack-monitoring\
 ├── 🐳 Docker Orchestration
 │   └── docker-compose.yml           ✅ Full stack (12+ services)
 │
+├── 🎨 Grafana Configuration (3 files)
+│   ├── grafana/dashboards/
+│   │   ├── infrastructure-overview.json    ✅ System metrics dashboard
+│   │   ├── endpoint-monitoring.json        ✅ Service availability & SSL
+│   │   ├── database-monitoring.json        ✅ PostgreSQL monitoring
+│   │   └── message-queues.json             ✅ RabbitMQ & Kafka metrics
+│   ├── grafana/provisioning/
+│   │   ├── datasources/prometheus.yml      ✅ Auto-configured datasource
+│   │   └── dashboards/dashboards.yml       ✅ Auto-loading configuration
+│   └── docs/GRAFANA_DASHBOARDS.md          ✅ Complete dashboard guide
+│
 ├── 📚 Exporter Guides (5 files)
 │   ├── exporters/node_exporter.md       ✅ Linux system monitoring
 │   ├── exporters/postgres_exporter.md   ✅ PostgreSQL setup
@@ -47,8 +58,8 @@ c:\Users\Alitman\.vscode\Projects\full-stack-monitoring\
 
 | Metric | Count |
 |--------|-------|
-| **Total Files Created** | 20+ |
-| **Total Documentation Pages** | 15+ |
+| **Total Files Created** | 25+ |
+| **Total Documentation Pages** | 16+ |
 | **Lines of Documentation** | 3000+ |
 | **Exporters Configured** | 20+ |
 | **Alert Rules** | 20+ |
@@ -154,6 +165,15 @@ Each guide includes:
 - Docker container issues
 - Network debugging
 - Performance optimization
+
+### GRAFANA_DASHBOARDS.md
+- Overview of 4 production dashboards
+- Dashboard access and navigation
+- Key metrics and thresholds
+- Custom metric examples
+- Dashboard customization guide
+- Best practices for visualization
+- Troubleshooting dashboard issues
 
 ## 💡 What You Can Showcase
 

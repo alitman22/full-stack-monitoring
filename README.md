@@ -105,14 +105,16 @@ This project demonstrates a **multi-layer, enterprise-grade monitoring solution*
 │   └── exporter_matrix.md            # Comparison of all exporters
 ├── grafana/
 │   ├── dashboards/
-│   │   ├── overview.json             # System overview dashboard
-│   │   ├── infrastructure.json       # Infrastructure metrics
-│   │   ├── databases.json            # Database metrics
-│   │   ├── applications.json         # Application monitoring
-│   │   └── networking.json           # Network and endpoint monitoring
+│   │   ├── infrastructure-overview.json    # CPU, memory, disk, network
+│   │   ├── endpoint-monitoring.json       # HTTP endpoints, SSL certificates
+│   │   ├── database-monitoring.json       # PostgreSQL connection, queries, replication
+│   │   └── message-queues.json            # RabbitMQ & Kafka metrics
 │   ├── provisioning/
-│   │   └── datasources.yml           # Grafana datasources config
-│   └── alerts.md                     # Alert panel setup guide
+│   │   ├── datasources/
+│   │   │   └── prometheus.yml            # Prometheus datasource auto-config
+│   │   └── dashboards/
+│   │       └── dashboards.yml            # Dashboard provisioning config
+│   └── docs/GRAFANA_DASHBOARDS.md       # Dashboard guide (this file)
 ├── docker-compose.yml                # Full stack orchestration
 ├── docker-compose.prod.yml           # Production HA setup
 ├── alertmanager.yml                  # AlertManager configuration
@@ -169,12 +171,20 @@ scrape_configs:
       - targets: ['your-node-ip:9100']
 ```
 
-### 5. Import Dashboards
+### 5. Access Grafana Dashboards
 
-In Grafana:
-1. Go to Dashboards → Import
-2. Upload JSON files from `grafana/dashboards/`
-3. Select Prometheus as datasource
+Dashboards are automatically provisioned on startup. Log in to Grafana:
+- URL: http://localhost:3000
+- Username: admin
+- Password: admin
+
+Available dashboards:
+1. **Infrastructure Overview** - CPU, memory, disk, network metrics
+2. **Endpoint Monitoring** - External service availability and SSL expiry
+3. **Database - PostgreSQL** - Connections, replication, cache hit ratio
+4. **Message Queues** - RabbitMQ and Kafka metrics
+
+**[📖 Complete Dashboard Guide](docs/GRAFANA_DASHBOARDS.md)** - Detailed information about each dashboard, metrics, and customization options.
 
 ## 📚 Exporter Documentation
 

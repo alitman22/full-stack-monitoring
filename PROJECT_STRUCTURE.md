@@ -23,15 +23,18 @@ full-stack-monitoring/
 │   └── exporter_matrix.md               # Detailed exporter comparison
 │
 ├── grafana/
-│   ├── dashboards/                      # Dashboard templates (ready to import)
-│   │   ├── overview.json
-│   │   ├── infrastructure.json
-│   │   ├── databases.json
-│   │   ├── applications.json
-│   │   └── networking.json
+│   ├── dashboards/                      # Auto-provisioned dashboards (4 included)
+│   │   ├── infrastructure-overview.json # CPU, memory, disk, network metrics
+│   │   ├── endpoint-monitoring.json     # HTTP endpoints, SSL certificates
+│   │   ├── database-monitoring.json     # PostgreSQL monitoring
+│   │   └── message-queues.json          # RabbitMQ & Kafka metrics
 │   ├── provisioning/
-│   │   └── datasources.yml              # Grafana datasource config
-│   └── alerts.md                        # Alert panel setup guide
+│   │   ├── datasources/
+│   │   │   └── prometheus.yml           # Prometheus datasource auto-config
+│   │   └── dashboards/
+│   │       └── dashboards.yml           # Dashboard auto-loading config
+│   └── docs/
+│       └── GRAFANA_DASHBOARDS.md        # Complete dashboard guide & customization
 │
 ├── deployment/
 │   ├── DOCKER_SETUP.md                 # Docker Compose deployment (100+ lines)

@@ -37,12 +37,18 @@ Wait 30 seconds for services to start.
 1. Go to http://localhost:9090/targets
 2. All targets should show "UP" (give 30s for first scrape)
 
-## 5. Import Dashboards
+## 5. View Dashboards
 
-In Grafana:
-1. Left sidebar → Dashboards → + Import
-2. Upload JSON files from `grafana/dashboards/`
-3. Select Prometheus datasource
+Dashboards are automatically provisioned on startup. In Grafana:
+
+1. Home page shows available dashboards
+2. Four main dashboards ready to use:
+   - **Infrastructure Overview** - System metrics
+   - **Endpoint Monitoring** - External services
+   - **Database - PostgreSQL** - Database health
+   - **Message Queues** - RabbitMQ & Kafka
+
+**[📖 Full Dashboard Guide](docs/GRAFANA_DASHBOARDS.md)**
 
 ## 6. Add Your Servers
 
